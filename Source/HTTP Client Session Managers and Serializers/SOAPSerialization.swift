@@ -110,7 +110,9 @@ class SOAPResponseParser: AbstractDOMXMLParser {
     override func parse(document: ONOXMLDocument) -> EmptyResult {
         var result: EmptyResult = .success
         document.enumerateElements(withXPath: "/s:Envelope/s:Body/*/*", using: { (element, index, stop) -> Void in
-            if let element = element, let elementTag = element.tag, let elementValue = element.stringValue(),
+            let element = element
+            let elementTag = element.tag
+            if let elementValue = element.stringValue,
                 elementTag.characters.count > 0 && elementValue.characters.count > 0 && elementValue != "NOT_IMPLEMENTED" {
                 self._responseParameters[elementTag] = elementValue
             }

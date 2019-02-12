@@ -73,10 +73,10 @@ extension AbstractUPnP {
 }
 
 extension AbstractUPnP: ExtendedPrintable {
-    #if os(iOS)
+    #if os(iOS) || os(tvOS)
     public var className: String { return "\(type(of: self))" }
     #elseif os(OSX) // NSObject.className actually exists on OSX! Who knew.
-    override public var className: String { return "\(type(of: self))" }
+    override open var className: String { return "\(type(of: self))" }
     #endif
     override open var description: String {
         var properties = PropertyPrinter()

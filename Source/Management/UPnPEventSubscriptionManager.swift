@@ -471,7 +471,7 @@ internal func ==(lhs: UPnPEventSubscriptionManager.Subscription, rhs: UPnPEventS
 }
 
 extension UPnPEventSubscriptionManager.Subscription: ExtendedPrintable {
-    #if os(iOS)
+    #if os(iOS) || os(tvOS)
     var className: String { return "Subscription" }
     #elseif os(OSX) // NSObject.className actually exists on OSX! Who knew.
     override var className: String { return "Subscription" }

@@ -37,14 +37,14 @@ open class ContentDirectory1Object: NSObject {
     init?(xmlElement: ONOXMLElement) {
         if let objectID = xmlElement.value(forAttribute: "id") as? String,
             let parentID = xmlElement.value(forAttribute: "parentID") as? String,
-            let title = xmlElement.firstChild(withTag: "title").stringValue(),
-            let rawType = xmlElement.firstChild(withTag: "class").stringValue() {
+            let title = xmlElement.firstChild(withTag: "title")?.stringValue,
+            let rawType = xmlElement.firstChild(withTag: "class")?.stringValue {
                 self.objectID = objectID
                 self.parentID = parentID
                 self.title = title
                 self.rawType = rawType
                 
-                if let albumArtURLString = xmlElement.firstChild(withTag: "albumArtURI")?.stringValue() {
+                if let albumArtURLString = xmlElement.firstChild(withTag: "albumArtURI")?.stringValue {
                     self.albumArtURL = URL(string: albumArtURLString)
                 } else { albumArtURL = nil }
         } else {
@@ -63,10 +63,10 @@ open class ContentDirectory1Object: NSObject {
 }
 
 extension ContentDirectory1Object: ExtendedPrintable {
-    #if os(iOS)
+    #if os(iOS) || os(tvOS)
     public var className: String { return "\(type(of: self))" }
     #elseif os(OSX) // NSObject.className actually exists on OSX! Who knew.
-    override public var className: String { return "\(type(of: self))" }
+    override open var className: String { return "\(type(of: self))" }
     #endif
     override open var description: String {
         var properties = PropertyPrinter()
@@ -100,7 +100,7 @@ extension ContentDirectory1Object {
 
 /// overrides ExtendedPrintable protocol implementation
 extension ContentDirectory1Container {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)
@@ -116,7 +116,7 @@ open class ContentDirectory1Item: ContentDirectory1Object {
     
     override init?(xmlElement: ONOXMLElement) {
         /// TODO: Return nil immediately instead of waiting, see Github issue #11
-        if let resourceURLString = xmlElement.firstChild(withTag: "res").stringValue() {
+        if let resourceURLString = xmlElement.firstChild(withTag: "res")?.stringValue {
             resourceURL = URL(string: resourceURLString)
         } else { resourceURL = nil }
         
@@ -137,7 +137,7 @@ extension ContentDirectory1Object {
 
 /// overrides ExtendedPrintable protocol implementation
 extension ContentDirectory1Item {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)
@@ -158,9 +158,9 @@ open class ContentDirectory1VideoItem: ContentDirectory1Item {
     open let size: Int?
     
     override init?(xmlElement: ONOXMLElement) {
-        bitrate = Int(String(describing: xmlElement.firstChild(withTag: "res").value(forAttribute: "bitrate") as? String))
+        bitrate = Int(String(describing: xmlElement.firstChild(withTag: "res")?.value(forAttribute: "bitrate") as? String))
         
-        if let durationString = xmlElement.firstChild(withTag: "res").value(forAttribute: "duration") as? String {
+        if let durationString = xmlElement.firstChild(withTag: "res")?.value(forAttribute: "duration") as? String {
             let durationComponents = durationString.components(separatedBy: ":")
             var count: Double = 0
             var duration: Double = 0
@@ -172,19 +172,19 @@ open class ContentDirectory1VideoItem: ContentDirectory1Item {
             self.duration = TimeInterval(duration)
         } else { self.duration = nil }
         
-        audioChannelCount = Int(String(describing: xmlElement.firstChild(withTag: "res").value(forAttribute: "nrAudioChannels") as? String))
+        audioChannelCount = Int(String(describing: xmlElement.firstChild(withTag: "res")?.value(forAttribute: "nrAudioChannels") as? String))
         
-        protocolInfo = xmlElement.firstChild(withTag: "res").value(forAttribute: "protocolInfo") as? String
+        protocolInfo = xmlElement.firstChild(withTag: "res")?.value(forAttribute: "protocolInfo") as? String
         
-        if let resolutionComponents = (xmlElement.firstChild(withTag: "res").value(forAttribute: "resolution") as? String)?.components(separatedBy: "x"),
+        if let resolutionComponents = (xmlElement.firstChild(withTag: "res")?.value(forAttribute: "resolution") as? String)?.components(separatedBy: "x"),
             let width = Int(String(describing: resolutionComponents.first)),
             let height = Int(String(describing: resolutionComponents.last)) {
                 resolution = CGSize(width: width, height: height)
         } else { resolution = nil }
         
-        sampleFrequency = Int(String(describing: xmlElement.firstChild(withTag: "res").value(forAttribute: "sampleFrequency") as? String))
+        sampleFrequency = Int(String(describing: xmlElement.firstChild(withTag: "res")?.value(forAttribute: "sampleFrequency") as? String))
         
-        size = Int(String(describing: xmlElement.firstChild(withTag: "res").value(forAttribute: "size") as? String))
+        size = Int(String(describing: xmlElement.firstChild(withTag: "res")?.value(forAttribute: "size") as? String))
         
         super.init(xmlElement: xmlElement)
     }
@@ -199,7 +199,7 @@ extension ContentDirectory1Object {
 
 /// overrides ExtendedPrintable protocol implementation
 extension ContentDirectory1VideoItem {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)

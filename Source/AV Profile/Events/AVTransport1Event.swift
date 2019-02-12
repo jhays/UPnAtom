@@ -49,7 +49,7 @@ class AVTransport1EventParser: AbstractDOMXMLParser {
         let result: EmptyResult = .success
 
         // procedural vs series of nested if let's
-        guard let lastChangeXMLString = document.firstChild(withXPath: "/e:propertyset/e:property/LastChange")?.stringValue() else {
+        guard let lastChangeXMLString = document.firstChild(withXPath: "/e:propertyset/e:property/LastChange")?.stringValue else {
             return .failure(createError("No LastChange element in UPnP service event XML"))
         }
         
@@ -61,7 +61,8 @@ class AVTransport1EventParser: AbstractDOMXMLParser {
         
         lastChangeEventDocument.definePrefix("avt", forDefaultNamespace: "urn:schemas-upnp-org:metadata-1-0/AVT/")
         lastChangeEventDocument.enumerateElements(withXPath: "/avt:Event/avt:InstanceID/*", using: { [unowned self] (element, index, stop) -> Void in
-            if let element = element, let stateValue = element.value(forAttribute: "val") as? String, !stateValue.isEmpty {
+             let element = element
+            if let stateValue = element.value(forAttribute: "val") as? String, !stateValue.isEmpty {
                 if element.tag.range(of: "MetaData") != nil {
                     guard let metadataDocument = try? ONOXMLDocument(string: stateValue, encoding: String.Encoding.utf8.rawValue) else {
                         return
@@ -73,7 +74,8 @@ class AVTransport1EventParser: AbstractDOMXMLParser {
                     
                     metadataDocument.definePrefix("didllite", forDefaultNamespace: "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/")
                     metadataDocument.enumerateElements(withXPath: "/didllite:DIDL-Lite/didllite:item/*", using: { (metadataElement, index, stop) -> Void in
-                        if let metadataElement = metadataElement, let elementStringValue = metadataElement.stringValue(), !elementStringValue.isEmpty {
+                        let metadataElement = metadataElement
+                        if let elementStringValue = metadataElement.stringValue, !elementStringValue.isEmpty {
                             metaData[metadataElement.tag] = elementStringValue
                         }
                     })

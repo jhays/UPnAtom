@@ -1,9 +1,24 @@
-inhibit_all_warnings!
+ inhibit_all_warnings!
 use_frameworks!
 source 'https://github.com/CocoaPods/Specs.git'
 
 project 'ControlPointDemo'
 
-target 'ControlPointDemo' do
+def import_pods
 	pod 'UPnAtom', :path => '../..'
+end
+
+target 'ControlPointDemo' do
+	platform :ios, '8.0'
+	import_pods
+end
+
+target 'ControlPointDemoMac' do
+	platform :osx, '10.10'
+	import_pods
+end
+
+target 'ControlPointDemoTVOS' do
+	platform :tvos, '9.0'
+	import_pods
 end

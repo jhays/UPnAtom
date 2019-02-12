@@ -24,7 +24,7 @@
 import Foundation
 
 public protocol ExtendedPrintable: CustomStringConvertible {
-    var className: String { get }
+    //var className: String { get }
 }
 
 public struct PropertyPrinter {

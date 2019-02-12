@@ -94,18 +94,24 @@ open class UPnPRegistry: NSObject {
             })
         }
         _upnpObjectDescriptionSessionManager.get(upnpArchivable.descriptionURL.absoluteString, parameters: nil, success: { (task, responseObject) -> Void in
-            DispatchQueue.global(qos: .default).async(execute: { () -> Void in
-                guard let xmlData = responseObject as? NSData,
-                    let usn = UniqueServiceName(rawValue: upnpArchivable.usn),
-                    let upnpObject = self.createUPnPObject(usn: usn, descriptionURL: upnpArchivable.descriptionURL, descriptionXML: xmlData as Data) else {
-                        failureCase(createError("Unable to create UPnP object"))
-                        return
+            if #available(OSX 10.10, *) {
+                DispatchQueue.global().async {
+                    guard let xmlData = responseObject as? NSData,
+                        let usn = UniqueServiceName(rawValue: upnpArchivable.usn),
+                        let upnpObject = self.createUPnPObject(usn: usn, descriptionURL: upnpArchivable.descriptionURL, descriptionXML: xmlData as Data) else {
+                            failureCase(createError("Unable to create UPnP object"))
+                            return
+                    }
+
+                    callbackQueue.addOperation({ () -> Void in
+                        success(upnpObject)
+                    })
                 }
-                
-                callbackQueue.addOperation({ () -> Void in
-                    success(upnpObject)
-                })
-            })
+            } else {
+                // Fallback on earlier versions
+                let osVersionError = NSError(domain: "OSVersionError", code: 999, userInfo: nil)
+                failureCase(osVersionError)
+            }
             }, failure: { (task, error) -> Void in
                 print("having error: \(error)")
                 failureCase(error as NSError)

@@ -130,24 +130,30 @@ open class AbstractUPnPService: AbstractUPnP {
             httpSessionManager.requestSerializer = AFHTTPRequestSerializer()
             httpSessionManager.responseSerializer = AFHTTPResponseSerializer()
             httpSessionManager.get(serviceDescriptionURL.absoluteString, parameters: nil, success: { (task, responseObject) in
-                DispatchQueue.global(qos: .default).async(execute: { 
-                    guard let xmlData = responseObject as? NSData else {
-                        completion(nil, AbstractUPnPService._serviceDescriptionDefaultPrefix)
-                        return
-                    }
-                    
-                    do {
-                        let serviceDescriptionDocument = try ONOXMLDocument(data: xmlData as Data!)
-                        LogVerbose("Parsing service description XML:\nSTART\n\(NSString(data: xmlData as Data, encoding: String.Encoding.utf8.rawValue))\nEND")
-                        
-                        serviceDescriptionDocument.definePrefix(AbstractUPnPService._serviceDescriptionDefaultPrefix, forDefaultNamespace: "urn:schemas-upnp-org:service-1-0")
-                        self._serviceDescriptionDocument = serviceDescriptionDocument
-                        completion(serviceDescriptionDocument, AbstractUPnPService._serviceDescriptionDefaultPrefix)
-                    } catch let parseError as NSError {
-                        LogError("Failed to parse service description for SOAP action support check: \(parseError)")
-                        completion(nil, AbstractUPnPService._serviceDescriptionDefaultPrefix)
-                    }
-                })
+                if #available(OSX 10.10, iOS 8.0, *) {
+                    DispatchQueue.global(qos: .default).async(execute: {
+                        guard let xmlData = responseObject as? NSData else {
+                            completion(nil, AbstractUPnPService._serviceDescriptionDefaultPrefix)
+                            return
+                        }
+
+                        do {
+                            let serviceDescriptionDocument = try ONOXMLDocument(data: xmlData as Data!)
+                            LogVerbose("Parsing service description XML:\nSTART\n\(NSString(data: xmlData as Data, encoding: String.Encoding.utf8.rawValue))\nEND")
+
+                            serviceDescriptionDocument.definePrefix(AbstractUPnPService._serviceDescriptionDefaultPrefix, forDefaultNamespace: "urn:schemas-upnp-org:service-1-0")
+                            self._serviceDescriptionDocument = serviceDescriptionDocument
+                            completion(serviceDescriptionDocument, AbstractUPnPService._serviceDescriptionDefaultPrefix)
+                        } catch let parseError as NSError {
+                            LogError("Failed to parse service description for SOAP action support check: \(parseError)")
+                            completion(nil, AbstractUPnPService._serviceDescriptionDefaultPrefix)
+                        }
+                    })
+                } else {
+                    // Fallback on earlier versions
+                    LogError("OSX / iOS version error")
+                    completion(nil, AbstractUPnPService._serviceDescriptionDefaultPrefix)
+                }
             }, failure: { (task, error) in
                 LogError("Failed to retrieve service description for SOAP action support check: \(error)")
                 completion(nil, AbstractUPnPService._serviceDescriptionDefaultPrefix)
@@ -288,7 +294,7 @@ extension AbstractUPnP {
 
 /// overrides ExtendedPrintable protocol implementation
 extension AbstractUPnPService {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)

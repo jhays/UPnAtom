@@ -342,7 +342,7 @@ extension AbstractUPnP {
 
 /// overrides ExtendedPrintable protocol implementations
 extension RenderingControl1Service {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)

@@ -73,19 +73,25 @@ open class ContentDirectory1Service: AbstractUPnPService {
         let parameters = SOAPRequestSerializer.Parameters(soapAction: "Browse", serviceURN: urn, arguments: arguments)
         
         soapSessionManager.post(controlURL.absoluteString, parameters: parameters, success: { (task, responseObject) -> Void in
-            DispatchQueue.global(qos: .default).async(execute: {
-                let responseObject = responseObject as? [String: String]
-                
-                var result = [ContentDirectory1Object]()
-                if let resultString = responseObject?["Result"],
-                    let parserResult = ContentDirectoryBrowseResultParser().parse(browseResultData: resultString.data(using: String.Encoding.utf8)!).value {
-                    result = parserResult
-                }
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    success(result, Int(String(describing: responseObject?["NumberReturned"])) ?? 0, Int(String(describing: responseObject?["TotalMatches"])) ?? 0, responseObject?["UpdateID"])
+            if #available(OSX 10.10, *) {
+                DispatchQueue.global(qos: .default).async(execute: {
+                    let responseObject = responseObject as? [String: String]
+
+                    var result = [ContentDirectory1Object]()
+                    if let resultString = responseObject?["Result"],
+                        let parserResult = ContentDirectoryBrowseResultParser().parse(browseResultData: resultString.data(using: String.Encoding.utf8)!).value {
+                        result = parserResult
+                    }
+
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        success(result, Int(String(describing: responseObject?["NumberReturned"])) ?? 0, Int(String(describing: responseObject?["TotalMatches"])) ?? 0, responseObject?["UpdateID"])
+                    })
                 })
-            })
+            } else {
+                // Fallback on earlier versions
+                let osVersionError = NSError(domain: "OSVersionError", code: 999, userInfo: nil)
+                failure(osVersionError)
+            }
         }, failure: { (task, error) -> Void in
             print("having error: \(error)")
             failure(error as Error)
@@ -107,19 +113,25 @@ open class ContentDirectory1Service: AbstractUPnPService {
         supportsSOAPAction(actionParameters: parameters) { (isSupported) -> Void in
             if isSupported {
                 self.soapSessionManager.post(self.controlURL.absoluteString, parameters: parameters, success: { (task, responseObject) -> Void in
-                    DispatchQueue.global(qos: .default).async(execute: { () -> Void in
-                        let responseObject = responseObject as? [String: String]
-                        
-                        var result = [ContentDirectory1Object]()
-                        if let resultString = responseObject?["Result"],
-                            let parserResult = ContentDirectoryBrowseResultParser().parse(browseResultData: resultString.data(using: String.Encoding.utf8)!).value {
-                            result = parserResult
-                        }
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            success(result, Int(String(describing: responseObject?["NumberReturned"])) ?? 0, Int(String(describing: responseObject?["TotalMatches"])) ?? 0, responseObject?["UpdateID"])
+                    if #available(OSX 10.10, *) {
+                        DispatchQueue.global(qos: .default).async(execute: { () -> Void in
+                            let responseObject = responseObject as? [String: String]
+
+                            var result = [ContentDirectory1Object]()
+                            if let resultString = responseObject?["Result"],
+                                let parserResult = ContentDirectoryBrowseResultParser().parse(browseResultData: resultString.data(using: String.Encoding.utf8)!).value {
+                                result = parserResult
+                            }
+
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                success(result, Int(String(describing: responseObject?["NumberReturned"])) ?? 0, Int(String(describing: responseObject?["TotalMatches"])) ?? 0, responseObject?["UpdateID"])
+                            })
                         })
-                    })
+                    } else {
+                        // Fallback on earlier versions
+                        let osVersionError = NSError(domain: "OSVersionError", code: 999, userInfo:nil)
+                        failure(osVersionError)
+                    }
                 }, failure: { (task, error) -> Void in
                     print("having error: \(error)")
                     failure(error as Error)
@@ -141,19 +153,25 @@ open class ContentDirectory1Service: AbstractUPnPService {
         supportsSOAPAction(actionParameters: parameters) { (isSupported) -> Void in
             if isSupported {
                 self.soapSessionManager.post(self.controlURL.absoluteString, parameters: parameters, success: { (task, responseObject) -> Void in
-                    DispatchQueue.global(qos: .default).async(execute: { () -> Void in
-                        let responseObject = responseObject as? [String: String]
-                        
-                        var result = [ContentDirectory1Object]()
-                        if let resultString = responseObject?["Result"],
-                            let parserResult = ContentDirectoryBrowseResultParser().parse(browseResultData: resultString.data(using: String.Encoding.utf8)!).value {
-                            result = parserResult
-                        }
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            success(responseObject?["ObjectID"], result)
+                    if #available(OSX 10.10, *) {
+                        DispatchQueue.global(qos: .default).async(execute: { () -> Void in
+                            let responseObject = responseObject as? [String: String]
+
+                            var result = [ContentDirectory1Object]()
+                            if let resultString = responseObject?["Result"],
+                                let parserResult = ContentDirectoryBrowseResultParser().parse(browseResultData: resultString.data(using: String.Encoding.utf8)!).value {
+                                result = parserResult
+                            }
+
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                success(responseObject?["ObjectID"], result)
+                            })
                         })
-                    })
+                    } else {
+                        // Fallback on earlier versions
+                        let osVersionError = NSError(domain: "OSVersionError", code: 999, userInfo: nil)
+                        failure(osVersionError)
+                    }
                 }, failure: { (task, error) -> Void in
                     print("having error: \(error)")
                     failure(error as Error)
@@ -347,7 +365,7 @@ extension AbstractUPnP {
 
 /// overrides ExtendedPrintable protocol implementation
 extension ContentDirectory1Service {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)
@@ -362,8 +380,8 @@ class ContentDirectoryBrowseResultParser: AbstractDOMXMLParser {
         let result: EmptyResult = .success
         document.definePrefix("didllite", forDefaultNamespace: "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/")
         document.enumerateElements(withXPath: "/didllite:DIDL-Lite/*", using: { [unowned self] (element, index, stop) -> Void in
-            guard let element = element else { return }
-            switch element.firstChild(withTag: "class").stringValue() {
+            //let element = element else { return }
+            switch element.firstChild(withTag: "class")?.stringValue {
             case .some(let rawType) where rawType.range(of: "object.container") != nil: // some servers use object.container and some use object.container.storageFolder
                 if let contentDirectoryObject = ContentDirectory1Container(xmlElement: element) {
                     self._contentDirectoryObjects.append(contentDirectoryObject)

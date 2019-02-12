@@ -114,7 +114,7 @@ extension AbstractUPnP {
 
 /// overrides ExtendedPrintable protocol implementation
 extension AbstractUPnPDevice {
-    override public var className: String { return "\(type(of: self))" }
+    //override open var className: String { return "\(type(of: self))" }
     override open var description: String {
         var properties = PropertyPrinter()
         properties.add(super.className, property: super.description)
