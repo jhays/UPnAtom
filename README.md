@@ -4,12 +4,19 @@
 [![License](http://img.shields.io/cocoapods/l/UPnAtom.svg)](https://github.com/master-nevi/UPnAtom/blob/master/LICENSE)
 [![Build Status](https://img.shields.io/travis/master-nevi/UPnAtom/master.svg)](https://travis-ci.org/master-nevi/UPnAtom)
 
+### JHays Fork Notes -
+
+Work-In-Progress moving towards Swift 4, with a Swift Example project that includes targets for iOS, tvOS, and macOS
+
+---
+
 An open source Universal Plug and Play library with a focus on media streaming coordination using the UPnP A/V profile; written in Swift but for both Objective-C and Swift apps. Supports only iOS 8 and higher due to iOS 7's limitation of not supporting dynamic libraries via Clang module.
 
 ### Requirements:
 * iOS 8.0+
 * OSX 10.9+
 * Xcode 7.2
+* tvOS 9.0+
 
 ### Install:
 Add following to Podfile:
