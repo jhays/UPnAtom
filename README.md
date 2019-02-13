@@ -6,7 +6,8 @@
 
 ### JHays Fork Notes -
 
-Work-In-Progress moving towards Swift 4, with a Swift Example project that includes targets for iOS, tvOS, and macOS
+Swift 4 Update
+Work-In-Progress, with a Swift Example project that includes targets for iOS, tvOS, and macOS
 
 ---
 
@@ -46,7 +47,7 @@ Note: On iOS, transport security has blocked cleartext HTTP (http://) resource l
 * [x] UPnP Version 1 Compliance
 * [x] Ability to archive UPnP objects after initial discovery and persist somewhere via NSCoder/NSCoding
 * [x] OSX 10.9+ support
-* [ ] Swift 2.0
+* [x] Swift 4.0
 * [x] In-house implementation of SSDP discovery
 * [x] A/V Profile Feature parity with upnpx library
 * [ ] Documentation (Until then please check out the [example projects](https://github.com/master-nevi/UPnAtom/tree/master/Examples))

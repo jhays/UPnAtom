@@ -211,8 +211,8 @@ extension SSDPExplorer: GCDAsyncUdpSocketDelegate {
                             let value = (line as NSString).substring(with: result.range(at: 2))
                             headers[key] = value
                             #else
-                            let key = (line as NSString).substring(with: result.rangeAt(1)).lowercased()
-                            let value = (line as NSString).substring(with: result.rangeAt(2))
+                            let key = (line as NSString).substring(with: result.range(at: 1)).lowercased()
+                            let value = (line as NSString).substring(with: result.range(at: 2))
                             headers[key] = value
                             #endif
 

@@ -26,8 +26,10 @@ import UPnAtom
 
 class RootFolderViewController: UIViewController {
     fileprivate var _discoveredDeviceUSNs = [UniqueServiceName]()
+    fileprivate var discoveredDeviceCount = 0
     fileprivate var _discoveredUPnPObjectCache = [UniqueServiceName: AbstractUPnP]()
     fileprivate var _archivedDeviceUSNs = [UniqueServiceName]()
+    fileprivate var archivedDeviceCount = 0
     fileprivate var _archivedUPnPObjectCache = [UniqueServiceName: AbstractUPnP]()
     fileprivate static let upnpObjectArchiveKey = "upnpObjectArchiveKey"
     fileprivate weak var _toolbarLabel: UILabel?
@@ -98,18 +100,24 @@ class RootFolderViewController: UIViewController {
 
     @objc fileprivate func deviceWasAdded(_ notification: Notification) {
         if let upnpDevice = notification.userInfo?[UPnPRegistry.UPnPDeviceKey()] as? AbstractUPnPDevice {
-            print("Added device: \(upnpDevice.className) - \(upnpDevice.friendlyName)")
+            print("Added device: \(upnpDevice.className) - \(String(describing: upnpDevice.friendlyName))")
             
             _discoveredUPnPObjectCache[upnpDevice.usn] = upnpDevice
-            insertDevice(deviceUSN: upnpDevice.usn, deviceUSNs: &_discoveredDeviceUSNs, inSection: 1)
+            discoveredDeviceCount += 1
+            //insertDevice(deviceUSN: upnpDevice.usn, deviceUSNs: &_discoveredDeviceUSNs, inSection: 1)
+            let index = _discoveredDeviceUSNs.count
+            _discoveredDeviceUSNs.insert(upnpDevice.usn, at: index)
+            let indexPath = IndexPath(row: index, section: 1)
+            _tableView.insertRows(at: [indexPath], with: .automatic)
         }
     }
     
     @objc fileprivate func deviceWasRemoved(_ notification: Notification) {
         if let upnpDevice = notification.userInfo?[UPnPRegistry.UPnPDeviceKey()] as? AbstractUPnPDevice {
-            print("Removed device: \(upnpDevice.className) - \(upnpDevice.friendlyName)")
+            print("Removed device: \(upnpDevice.className) - \(String(describing: upnpDevice.friendlyName))")
             
             _discoveredUPnPObjectCache.removeValue(forKey: upnpDevice.usn)
+            discoveredDeviceCount -= 1
             deleteDevice(deviceUSN: upnpDevice.usn, deviceUSNs: &_discoveredDeviceUSNs, inSection: 1)
         }
     }
@@ -133,7 +141,7 @@ class RootFolderViewController: UIViewController {
     }
     
     fileprivate func deviceCountForTableSection(_ section: Int) -> Int {
-        return section == 0 ? _archivedDeviceUSNs.count : _discoveredDeviceUSNs.count
+        return section == 0 ? archivedDeviceCount : discoveredDeviceCount
     }
     
     fileprivate func deviceForIndexPath(_ indexPath: NSIndexPath) -> AbstractUPnPDevice {
@@ -141,14 +149,7 @@ class RootFolderViewController: UIViewController {
         let deviceCache = indexPath.section == 0 ? _archivedUPnPObjectCache : _discoveredUPnPObjectCache
         return deviceCache[deviceUSN] as! AbstractUPnPDevice
     }
-    
-    fileprivate func insertDevice(deviceUSN: UniqueServiceName, deviceUSNs: inout [UniqueServiceName], inSection section: Int) {
-        let index = deviceUSNs.count
-        deviceUSNs.insert(deviceUSN, at: index)
-        let indexPath = IndexPath(row: index, section: section)
-        self._tableView.insertRows(at: [indexPath], with: .automatic)
-    }
-    
+
     fileprivate func deleteDevice(deviceUSN: UniqueServiceName, deviceUSNs: inout [UniqueServiceName], inSection section: Int) {
         if let index = deviceUSNs.index(of: deviceUSN) {
             deviceUSNs.remove(at: index)
@@ -231,8 +232,12 @@ class RootFolderViewController: UIViewController {
                         
                         if let upnpDevice = upnpObject as? AbstractUPnPDevice {
                             upnpDevice.serviceSource = self
-                            
-                            self.insertDevice(deviceUSN: upnpDevice.usn, deviceUSNs: &self._archivedDeviceUSNs, inSection: 0)
+                            self.archivedDeviceCount += 1
+                            //self.insertDevice(deviceUSN: upnpDevice.usn, deviceUSNs: &self._archivedDeviceUSNs, inSection: 0)
+                            let index = self._archivedDeviceUSNs.count
+                            self._archivedDeviceUSNs.insert(upnpDevice.usn, at: index)
+                            let indexPath = IndexPath(row: index, section: 0)
+                            self._tableView.insertRows(at: [indexPath], with: .automatic)
                         }
                         else if let upnpService = upnpObject as? AbstractUPnPService {
                             upnpService.deviceSource = self
@@ -265,7 +270,7 @@ extension RootFolderViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell: UITableViewCell = tableView.dequeueReusableCell(withIdentifier: "DefaultCell") as UITableViewCell!
+        let cell: UITableViewCell = tableView.dequeueReusableCell(withIdentifier: "DefaultCell") ?? UITableViewCell()
         let device = deviceForIndexPath(indexPath as NSIndexPath)
         cell.textLabel?.text = device.friendlyName
         cell.accessoryType = device is MediaServer1Device ? .disclosureIndicator : .none
@@ -280,7 +285,7 @@ extension RootFolderViewController: UITableViewDelegate {
 
         if let mediaServer = device as? MediaServer1Device {
             if mediaServer.contentDirectoryService == nil {
-                print("\(mediaServer.friendlyName) - has no content directory service")
+                print("\(String(describing: mediaServer.friendlyName)) - has no content directory service")
                 return
             }
             
@@ -292,7 +297,7 @@ extension RootFolderViewController: UITableViewDelegate {
         }
         else if let mediaRenderer = device as? MediaRenderer1Device {
             if mediaRenderer.avTransportService == nil {
-                print("\(mediaRenderer.friendlyName) - has no AV transport service")
+                print("\(String(describing: mediaRenderer.friendlyName)) - has no AV transport service")
                 return
             }
             
