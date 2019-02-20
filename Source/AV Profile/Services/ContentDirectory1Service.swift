@@ -73,6 +73,9 @@ open class ContentDirectory1Service: AbstractUPnPService {
         let parameters = SOAPRequestSerializer.Parameters(soapAction: "Browse", serviceURN: urn, arguments: arguments)
         
         soapSessionManager.post(controlURL.absoluteString, parameters: parameters, success: { (task, responseObject) -> Void in
+            print("test")
+            NSLog("response: \(responseObject)")
+print("hellp")
             if #available(OSX 10.10, *) {
                 DispatchQueue.global(qos: .default).async(execute: {
                     let responseObject = responseObject as? [String: String]
@@ -381,23 +384,28 @@ class ContentDirectoryBrowseResultParser: AbstractDOMXMLParser {
         document.definePrefix("didllite", forDefaultNamespace: "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/")
         document.enumerateElements(withXPath: "/didllite:DIDL-Lite/*", using: { [unowned self] (element, index, stop) -> Void in
             //let element = element else { return }
-            switch element.firstChild(withTag: "class")?.stringValue {
-            case .some(let rawType) where rawType.range(of: "object.container") != nil: // some servers use object.container and some use object.container.storageFolder
-                if let contentDirectoryObject = ContentDirectory1Container(xmlElement: element) {
-                    self._contentDirectoryObjects.append(contentDirectoryObject)
-                }
-            case .some(let rawType) where rawType == "object.item.videoItem":
-                if let contentDirectoryObject = ContentDirectory1VideoItem(xmlElement: element) {
-                    self._contentDirectoryObjects.append(contentDirectoryObject)
-                }
-            default:
-                if let contentDirectoryObject = ContentDirectory1Object(xmlElement: element) {
-                    self._contentDirectoryObjects.append(contentDirectoryObject)
-                }
-            }
+            self.parseClass(classTag: element.firstChild(withTag: "class")?.stringValue, xmlElement: element)
         })
         
         return result
+    }
+
+    private func parseClass(classTag: String?, xmlElement element: ONOXMLElement) {
+        NSLog("parseClass: \(classTag ?? "nilClassTag")")
+        switch classTag {
+        case .some(let rawType) where rawType.range(of: "object.container") != nil: // some servers use object.container and some use object.container.storageFolder
+            if let contentDirectoryObject = ContentDirectory1Container(xmlElement: element) {
+                self._contentDirectoryObjects.append(contentDirectoryObject)
+            }
+        case .some(let rawType) where rawType == "object.item.videoItem":
+            if let contentDirectoryObject = ContentDirectory1VideoItem(xmlElement: element) {
+                self._contentDirectoryObjects.append(contentDirectoryObject)
+            }
+        default:
+            if let contentDirectoryObject = ContentDirectory1Object(xmlElement: element) {
+                self._contentDirectoryObjects.append(contentDirectoryObject)
+            }
+        }
     }
     
     func parse(browseResultData: Data) -> Result<[ContentDirectory1Object]> {

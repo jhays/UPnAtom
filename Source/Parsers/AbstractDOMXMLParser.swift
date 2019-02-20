@@ -28,7 +28,7 @@ open class AbstractDOMXMLParser {
     open func parse(data: Data) -> EmptyResult {
         LogVerbose("Parsing XML:\nSTART\n\(NSString(data: data, encoding: String.Encoding.utf8.rawValue))\nEND")
         
-        var parserResult: EmptyResult = .failure(createError("Parser failure"))
+         var parserResult: EmptyResult = .failure(createError("Parser failure"))
         autoreleasepool { () -> () in
             do {
                 parserResult = self.parse(document:try ONOXMLDocument(data: data))
